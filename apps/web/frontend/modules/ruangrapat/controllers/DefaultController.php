@@ -82,8 +82,27 @@ class DefaultController extends Controller
         $model = new Reservation();
 
         if (Yii::$app->request->isPost) {
+            $model->load(Yii::$app->request->post());
+            $model->user_id = Yii::$app->user->id;
+            $model->room_id = $room->id;
+
+            // Handle surat peminjaman file upload
+            $uploadedFile = \yii\web\UploadedFile::getInstance($model, 'document');
+            if ($uploadedFile && !$uploadedFile->hasError) {
+                $uploadDir = Yii::getAlias('@frontend/web/uploads/documents/');
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+                $filename = 'surat_' . Yii::$app->user->id . '_' . time() . '.' . $uploadedFile->extension;
+                if ($uploadedFile->saveAs($uploadDir . $filename)) {
+                    $model->document = 'documents/' . $filename;
+                }
+            } else {
+                $model->document = null;
+            }
+
             $result = ReservationService::create(
-                Yii::$app->request->post('Reservation', []),
+                $model->toArray(),
                 Yii::$app->user->id
             );
 

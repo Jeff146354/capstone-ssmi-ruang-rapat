@@ -25,11 +25,46 @@ class DefaultController extends BaseAdminModuleController
         $totalRuangan = Room::find()->count();
         $permintaanReservasi = Reservation::find()->where(['status' => Reservation::STATUS_PENDING])->count();
         $penggunaTerdaftar = User::find()->where(['role' => User::ROLE_USER])->count();
+
+        // Monthly reservation counts for current year
+        $currentYear = date('Y');
+        $monthlyData = array_fill(0, 12, 0);
+        $monthlyRows = Yii::$app->db->createCommand("
+            SELECT MONTH(date) as month, COUNT(*) as total
+            FROM reservations
+            WHERE YEAR(date) = :year
+            GROUP BY MONTH(date)
+        ")->bindValue(':year', $currentYear)->queryAll();
+        foreach ($monthlyRows as $row) {
+            $monthlyData[(int)$row['month'] - 1] = (int)$row['total'];
+        }
+
+        // Reservations by status (for a donut/pie breakdown)
+        $statusData = [
+            'approved' => (int) Reservation::find()->where(['status' => Reservation::STATUS_APPROVED])->count(),
+            'pending'  => (int) Reservation::find()->where(['status' => Reservation::STATUS_PENDING])->count(),
+            'canceled' => (int) Reservation::find()->where(['status' => Reservation::STATUS_CANCELED])->count(),
+        ];
+
+        // Top 5 most booked rooms
+        $topRooms = Yii::$app->db->createCommand("
+            SELECT r.name, COUNT(res.id) as total
+            FROM room r
+            LEFT JOIN reservations res ON res.room_id = r.id
+            GROUP BY r.id, r.name
+            ORDER BY total DESC
+            LIMIT 5
+        ")->queryAll();
+
         return $this->render('index', [
-            'user' => $user,
-            'totalRuangan' => $totalRuangan,
-            'permintaanReservasi' => $permintaanReservasi,
-            'penggunaTerdaftar' => $penggunaTerdaftar,
+            'user'               => $user,
+            'totalRuangan'       => $totalRuangan,
+            'permintaanReservasi'=> $permintaanReservasi,
+            'penggunaTerdaftar'  => $penggunaTerdaftar,
+            'monthlyData'        => $monthlyData,
+            'statusData'         => $statusData,
+            'topRooms'           => $topRooms,
+            'currentYear'        => $currentYear,
         ]);
     }
 
@@ -113,12 +148,23 @@ class DefaultController extends BaseAdminModuleController
     {
         $model = Room::findOne($id);
         if ($model === null) {
-            throw new NotFoundHttpException("Ruangan dengan ID $id tidak ditemukan.");
+            // Also check inactive rooms in case admin tries to delete an already-soft-deleted room
+            $model = \yii\db\ActiveRecord::findOne(['id' => $id]);
+            if ($model === null) {
+                throw new NotFoundHttpException("Ruangan dengan ID $id tidak ditemukan.");
+            }
         }
 
-        $model->delete();
+        if (!$model->softDelete()) {
+            Yii::$app->session->setFlash(
+                'error',
+                "Ruangan \"{$model->name}\" tidak dapat dihapus karena masih memiliki reservasi yang disetujui di masa mendatang. " .
+                "Batalkan reservasi tersebut terlebih dahulu."
+            );
+        } else {
+            Yii::$app->session->setFlash('success', "Ruangan \"{$model->name}\" berhasil dinonaktifkan.");
+        }
 
-        Yii::$app->session->setFlash('success', "Ruangan $id berhasil dihapus.");
         return $this->redirect(['rooms']);
     }
 }

@@ -15,6 +15,7 @@ use Yii;
  * @property string|null $location
  * @property string|null $contact
  * @property int|null $capacity
+ * @property bool $is_active
  *
  * @property Reservation[] $reservations
  */
@@ -38,9 +39,11 @@ class Room extends \yii\db\ActiveRecord
         return [
             [['description', 'fr_img', 'location', 'contact'], 'default', 'value' => null],
             [['capacity'], 'default', 'value' => 0],
+            [['is_active'], 'default', 'value' => true],
             [['room', 'name'], 'required'],
             [['description'], 'string'],
             [['capacity'], 'integer'],
+            [['is_active'], 'boolean'],
             [['room', 'name', 'fr_img', 'location', 'contact'], 'string', 'max' => 255],
             // Unique room code — exclude self on update
             [['room'], 'unique', 'targetAttribute' => 'room',
@@ -101,6 +104,42 @@ class Room extends \yii\db\ActiveRecord
             return $this->fr_img;
         }
         return \yii\helpers\Url::base(true) . '/uploads/' . $this->fr_img;
+    }
+
+    /**
+     * Soft-delete: mark room as inactive instead of deleting.
+     * Preserves all reservation history.
+     */
+    public function softDelete(): bool
+    {
+        // Block deletion if there are future approved reservations
+        $hasFutureBookings = Reservation::find()
+            ->where(['room_id' => $this->id, 'status' => Reservation::STATUS_APPROVED])
+            ->andWhere(['>=', 'date', date('Y-m-d')])
+            ->exists();
+
+        if ($hasFutureBookings) {
+            return false; // caller should check this and show an error
+        }
+
+        $this->is_active = false;
+        return $this->save(false);
+    }
+
+    /**
+     * Only return active rooms by default.
+     */
+    public static function find(): \yii\db\ActiveQuery
+    {
+        return parent::find()->andWhere(['room.is_active' => true]);
+    }
+
+    /**
+     * Find all rooms including inactive ones (for admin views).
+     */
+    public static function findAll_($condition): array
+    {
+        return parent::find()->where($condition)->all();
     }
 
 }
