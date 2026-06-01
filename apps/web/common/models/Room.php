@@ -42,7 +42,16 @@ class Room extends \yii\db\ActiveRecord
             [['description'], 'string'],
             [['capacity'], 'integer'],
             [['room', 'name', 'fr_img', 'location', 'contact'], 'string', 'max' => 255],
-            [['room'], 'unique'],
+            // Unique room code — exclude self on update
+            [['room'], 'unique', 'targetAttribute' => 'room',
+                'filter' => function ($query) {
+                    if (!$this->isNewRecord) {
+                        $query->andWhere(['not', ['id' => $this->id]]);
+                    }
+                }
+            ],
+            // Allow file instance for fr_img (handled in controller, stored as string)
+            [['fr_img'], 'safe'],
         ];
     }
 
@@ -76,6 +85,22 @@ class Room extends \yii\db\ActiveRecord
     public function getReservations()
     {
         return $this->hasMany(Reservation::class, ['room_id' => 'id']);
+    }
+
+    /**
+     * Returns the public URL for the room image.
+     * Falls back to a placeholder if no image is set.
+     */
+    public function getImageUrl(string $fallback = 'https://placehold.co/400x300?text=No+Image'): string
+    {
+        if (!$this->fr_img) {
+            return $fallback;
+        }
+        // If it's already a full URL (e.g. external), return as-is
+        if (str_starts_with($this->fr_img, 'http')) {
+            return $this->fr_img;
+        }
+        return \yii\helpers\Url::base(true) . '/uploads/' . $this->fr_img;
     }
 
 }

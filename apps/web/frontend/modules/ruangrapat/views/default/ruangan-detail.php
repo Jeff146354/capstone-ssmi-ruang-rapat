@@ -14,7 +14,7 @@ use yii\helpers\Html;
         <h2 style="text-align:center; margin-top: 0;"><?= Html::encode($model->name) ?></h2>
 
         <div style="text-align:center; margin:20px 0;">
-            <img src="<?= Yii::getAlias('@web') . './uploads/' . Html::encode($model->fr_img ?: 'default-room.jpg') ?>"
+            <img src="<?= Html::encode($model->imageUrl) ?>"
                  alt="<?= Html::encode($model->name) ?>"
                  style="max-width:400px; width:100%; height:auto; object-fit:cover; border-radius:8px;" />
         </div>

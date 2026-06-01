@@ -41,17 +41,57 @@ class DefaultController extends BaseAdminModuleController
         if ($request->isPost) {
             $post = $request->post();
 
-            // Jika terdapat Room[id], berarti ini update
-            if (!empty($post['Room']['id'])) {
-                $model = Room::findOne($post['Room']['id']);
+            // Determine if this is an update (hidden id field present) or a create
+            $isUpdate = !empty($post['Room']['id']);
+
+            if ($isUpdate) {
+                $model = Room::findOne((int) $post['Room']['id']);
                 if (!$model) {
                     throw new NotFoundHttpException("Ruangan tidak ditemukan.");
                 }
             }
 
-            if ($model->load($post) && $model->save()) {
-                Yii::$app->session->setFlash('success', 'Data ruang berhasil disimpan.');
-                return $this->redirect(['index']);
+            // Keep the old image filename in case no new file is uploaded
+            $oldImage = $model->fr_img;
+
+            if ($model->load($post)) {
+                // Handle image upload
+                $uploadedFile = \yii\web\UploadedFile::getInstance($model, 'fr_img');
+
+                if ($uploadedFile && !$uploadedFile->hasError) {
+                    // Save to frontend/web/uploads/
+                    $uploadDir = Yii::getAlias('@frontend/web/uploads/');
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0755, true);
+                    }
+
+                    // Delete old image if replacing
+                    if ($oldImage && file_exists($uploadDir . $oldImage)) {
+                        unlink($uploadDir . $oldImage);
+                    }
+
+                    $filename = 'room_' . time() . '_' . uniqid() . '.' . $uploadedFile->extension;
+                    if ($uploadedFile->saveAs($uploadDir . $filename)) {
+                        $model->fr_img = $filename;
+                    } else {
+                        $model->fr_img = $oldImage; // fallback to old image on save failure
+                    }
+                } else {
+                    // No new file uploaded — keep the existing image
+                    $model->fr_img = $oldImage;
+                }
+
+                // For updates, skip unique validation on 'room' field if it hasn't changed
+                if ($isUpdate) {
+                    $model->save();
+                } else {
+                    $model->save();
+                }
+
+                if (!$model->hasErrors()) {
+                    Yii::$app->session->setFlash('success', 'Data ruang berhasil disimpan.');
+                    return $this->redirect(['rooms']);
+                }
             }
         }
 

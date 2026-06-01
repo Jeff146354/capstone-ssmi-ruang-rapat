@@ -16,7 +16,7 @@ $this->title = 'Daftar Ruangan';
         <?php foreach ($rooms as $room): ?>
             <div class="col-md-4">
                 <div class="card h-100 shadow-sm" style="cursor:pointer;" onclick="location.href='<?= \yii\helpers\Url::to(['default/view', 'id' => $room->id]) ?>'">
-                    <img src="<?= Yii::getAlias('@web') . './uploads/' . Html::encode($room->fr_img ?: 'default-room.jpg') ?>" class="card-img-top" alt="<?= Html::encode($room->name) ?>">
+                    <img src="<?= Html::encode($room->imageUrl) ?>" class="card-img-top" alt="<?= Html::encode($room->name) ?>">
                     <div class="card-body d-flex flex-column">
                         <h5 class="card-title"><?= Html::encode($room->name) ?></h5>
                         <p class="card-text text-secondary flex-grow-1">

@@ -313,7 +313,7 @@ $this->title = 'Home';
         <!-- Left: first room (large) -->
         <?php $first = $featuredRooms[0]; ?>
         <a href="<?= Url::to(['/ruang-rapat/default/view', 'id' => $first->id]) ?>" class="room-card-hero">
-            <img src="<?= Html::encode($first->fr_img ?: 'https://placehold.co/608x600') ?>"
+            <img src="<?= Html::encode($first->imageUrl) ?>"
                  alt="<?= Html::encode($first->name) ?>">
             <div class="overlay"></div>
             <div class="card-content">
@@ -337,7 +337,7 @@ $this->title = 'Home';
                 $room = $featuredRooms[$i];
             ?>
             <a href="<?= Url::to(['/ruang-rapat/default/view', 'id' => $room->id]) ?>" class="room-card-hero">
-                <img src="<?= Html::encode($room->fr_img ?: 'https://placehold.co/296x292') ?>"
+                <img src="<?= Html::encode($room->imageUrl) ?>"
                      alt="<?= Html::encode($room->name) ?>">
                 <div class="overlay"></div>
                 <div class="card-content sm">
@@ -382,7 +382,7 @@ $this->title = 'Home';
             <div class="col-md-4">
                 <div class="room-card-other">
                     <div class="card-img-wrap">
-                        <img src="<?= Html::encode($room->fr_img ?: 'https://placehold.co/400x200') ?>"
+                        <img src="<?= Html::encode($room->imageUrl) ?>"
                              alt="<?= Html::encode($room->name) ?>">
                         <span class="availability-badge <?= $isBusy ? 'full' : 'available' ?>">
                             <?= $isBusy ? 'Penuh' : 'Tersedia' ?>
