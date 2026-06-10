@@ -1,0 +1,79 @@
+@startuml Sequence - Admin Approve/Reject
+!theme plain
+skinparam roundcorner 8
+
+actor "Admin" as admin
+participant "Booking\nController" as ctrl
+participant "Reservation\nService" as svc
+database "MySQL" as db
+participant "Notification" as notif
+participant "Waitlist" as wl
+
+== Admin Approves a Reservation ==
+
+admin -> ctrl : GET /booking/reservation/approve?id=123
+activate ctrl
+ctrl -> svc : approve(123)
+activate svc
+
+svc -> db : BEGIN TRANSACTION
+svc -> db : SELECT ... FOR UPDATE\n(lock room+date rows)
+
+svc -> db : Find conflicting APPROVED\nreservations (same room/date/time)
+
+alt Higher-priority user bumps existing
+    svc -> db : Cancel existing approved\n(rejected_by='system')
+    svc -> notif : Send "reservation_bumped"\nto bumped user
+    svc -> svc : Apply priority boost\nto bumped user
+    svc -> wl : triggerWaitlist()\nfor the freed slot
+end
+
+alt Same-or-higher priority conflict exists
+    svc -> db : ROLLBACK
+    svc --> ctrl : {error: "conflict with same/higher priority"}
+    ctrl --> admin : Flash error
+else No conflict (or bumped successfully)
+    svc -> db : UPDATE status='approved'
+    
+    == Auto-cancel conflicting PENDING ==
+    svc -> db : Find overlapping PENDING\nreservations
+    loop Each conflicting pending
+        svc -> db : UPDATE status='canceled'\nrejected_by='system'
+        svc -> notif : Send "reservation_canceled"\nto that user
+    end
+    
+    svc -> notif : Send "reservation_approved"\nto the approved user
+    svc -> db : COMMIT
+    svc --> ctrl : {success, message}
+    ctrl --> admin : Flash "Disetujui + X dibatalkan"
+end
+
+deactivate svc
+deactivate ctrl
+
+== Admin Rejects a Reservation ==
+
+admin -> ctrl : POST /booking/reservation/cancel?id=456\n(rejection_reason="...")
+activate ctrl
+ctrl -> svc : cancel(456, 'admin', reason)
+activate svc
+
+svc -> db : UPDATE status='canceled'\nrejected_by='admin'\nrejection_reason=reason
+svc -> notif : Send "reservation_canceled"\n(includes reason)
+
+alt Was previously APPROVED
+    svc -> wl : triggerWaitlist()\nfor the freed slot
+    
+    wl -> wl : findBestMatch()\n(overlap scoring + FIFO)
+    alt Match found
+        wl -> db : UPDATE waitlist status='notified'
+        wl -> notif : Send "waitlist_available"\nto matched user
+    end
+end
+
+svc --> ctrl : {success}
+ctrl --> admin : Flash "Ditolak"
+deactivate svc
+deactivate ctrl
+
+@enduml

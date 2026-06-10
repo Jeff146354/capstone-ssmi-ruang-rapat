@@ -1,0 +1,110 @@
+@startuml ERD - IPB Reserve
+!theme plain
+skinparam linetype ortho
+skinparam roundcorner 8
+
+entity "user" as user {
+  * id : INT <<PK>>
+  --
+  * username : VARCHAR(255) <<UNIQUE>>
+  * email : VARCHAR(255) <<UNIQUE>>
+  * password_hash : VARCHAR(255)
+  * auth_key : VARCHAR(32)
+  * status : INT [10]
+  * role : ENUM('admin','user')
+  * priority : INT [1]
+  sso_provider : ENUM('google','firebase')
+  sso_uid : VARCHAR(255)
+  booking_suspended_until : DATETIME
+  requires_manual_approval : BOOLEAN [false]
+  priority_boost_until : DATETIME
+  * created_at : INT
+  * updated_at : INT
+}
+
+entity "room" as room {
+  * id : INT <<PK>>
+  --
+  * room : VARCHAR(255) <<UNIQUE>>
+  * name : VARCHAR(255)
+  description : TEXT
+  fr_img : VARCHAR(255)
+  location : VARCHAR(255)
+  contact : VARCHAR(255)
+  capacity : INT [0]
+  * is_active : BOOLEAN [true]
+}
+
+entity "reservations" as reservation {
+  * id : INT <<PK>>
+  --
+  * user_id : INT <<FK>>
+  * room_id : INT <<FK>>
+  * date : DATE
+  * start_time : TIME
+  * end_time : TIME
+  * status : ENUM('pending','approved','canceled')
+  document : VARCHAR(255)
+  affiliation : VARCHAR(255)
+  reason_of_use : TEXT
+  rejection_reason : TEXT
+  rejected_by : ENUM('admin','system','user')
+  checked_in_at : DATETIME
+  waitlist_id : INT
+  * created_at : TIMESTAMP
+}
+
+entity "booking_rules" as rules {
+  * id : INT <<PK>>
+  --
+  * rule_key : VARCHAR(100) <<UNIQUE>>
+  * rule_value : VARCHAR(255)
+  description : TEXT
+  updated_at : TIMESTAMP
+}
+
+entity "notifications" as notif {
+  * id : INT <<PK>>
+  --
+  * user_id : INT <<FK>>
+  * type : ENUM(...)
+  * message : TEXT
+  reservation_id : INT <<FK>>
+  * is_read : BOOLEAN [false]
+  * created_at : TIMESTAMP
+}
+
+entity "user_strikes" as strike {
+  * id : INT <<PK>>
+  --
+  * user_id : INT <<FK>>
+  reservation_id : INT <<FK>>
+  * reason : ENUM('no_show','late_cancel','damage')
+  notes : TEXT
+  * created_at : TIMESTAMP
+  expires_at : DATETIME
+}
+
+entity "reservation_waitlist" as waitlist {
+  * id : INT <<PK>>
+  --
+  * user_id : INT <<FK>>
+  * room_id : INT <<FK>>
+  * date : DATE
+  * start_time : TIME
+  * end_time : TIME
+  * status : ENUM('waiting','notified','claimed','expired')
+  notified_at : DATETIME
+  * created_at : TIMESTAMP
+}
+
+user ||--o{ reservation : "makes"
+room ||--o{ reservation : "has"
+user ||--o{ notif : "receives"
+reservation |o--o{ notif : "about"
+user ||--o{ strike : "has"
+reservation |o--o{ strike : "caused by"
+user ||--o{ waitlist : "joins"
+room ||--o{ waitlist : "for"
+
+@enduml

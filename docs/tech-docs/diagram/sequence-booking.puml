@@ -1,0 +1,67 @@
+@startuml Sequence - Booking Flow
+!theme plain
+skinparam roundcorner 8
+
+actor "User" as user
+participant "Frontend\nController" as ctrl
+participant "Reservation\nService" as svc
+participant "Reservation\nModel" as model
+database "MySQL" as db
+participant "Notification\nModel" as notif
+
+== User Submits Booking ==
+
+user -> ctrl : POST /peminjaman?id=5\n(date, time, room_id, etc.)
+activate ctrl
+
+ctrl -> ctrl : Handle file upload\n(surat peminjaman)
+ctrl -> svc : create(formData, userId)
+activate svc
+
+svc -> model : new Reservation()\nload(data)
+svc -> model : validate()
+activate model
+
+model -> model : validateNotPast()
+model -> model : validateOperatingHours()
+model -> model : validateDuration()
+model -> model : validateAdvanceBooking()
+model -> model : validateUserNotSuspended()
+model -> model : validateMaxPendingPerUser()
+model -> model : validateRoomAvailability()\n(includes buffer time)
+
+alt Validation fails
+    model --> svc : errors[]
+    svc --> ctrl : {success: false, errors}
+    ctrl --> user : Show form with errors
+else Validation passes
+    model --> svc : valid
+end
+deactivate model
+
+== Transaction with Pessimistic Lock ==
+
+svc -> db : BEGIN TRANSACTION
+svc -> db : SELECT ... FOR UPDATE\n(lock room+date rows)
+svc -> db : Re-check availability\n(inside lock)
+
+alt Conflict found (race condition)
+    svc -> db : ROLLBACK
+    svc --> ctrl : {success: false, "slot taken"}
+    ctrl --> user : Error: "Ruangan sudah tidak tersedia"
+else No conflict
+    svc -> db : INSERT reservation\n(status = 'pending')
+    svc -> db : COMMIT
+    svc --> ctrl : {success: true, model}
+    ctrl --> user : Flash "Berhasil diajukan"\nRedirect to dashboard
+end
+
+deactivate svc
+deactivate ctrl
+
+note over db
+  Reservation now waits
+  for admin review
+end note
+
+@enduml

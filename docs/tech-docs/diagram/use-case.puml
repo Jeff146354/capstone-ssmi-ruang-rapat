@@ -1,0 +1,73 @@
+@startuml Use Case - IPB Reserve
+!theme plain
+left to right direction
+skinparam actorStyle awesome
+
+actor "User\n(Mahasiswa/Dosen/Staff)" as user
+actor "Admin\n(Petugas Fasilitas)" as admin
+
+rectangle "Sistem Peminjaman Ruangan\n(IPB Reserve)" {
+    
+    ' === User Use Cases ===
+    usecase "Login" as UC1
+    usecase "Melihat Daftar Ruangan" as UC2
+    usecase "Melihat Detail Ruangan" as UC3
+    usecase "Membuat Reservasi" as UC4
+    usecase "Melihat Riwayat Reservasi" as UC5
+    usecase "Melihat Notifikasi" as UC6
+    usecase "Menandai Notifikasi Dibaca" as UC7
+    usecase "Membatalkan Reservasi" as UC8
+    usecase "Mendaftar Waitlist" as UC9
+    usecase "Klaim Slot Waitlist" as UC10
+    usecase "Cari Ruangan Tersedia" as UC11
+    
+    ' === Admin Use Cases ===
+    usecase "Login sebagai Admin" as UC12
+    usecase "Melihat Dashboard" as UC13
+    usecase "Menyetujui Reservasi" as UC14
+    usecase "Menolak Reservasi\n(+ Alasan)" as UC15
+    usecase "Mengelola Ruangan\n(CRUD + Soft Delete)" as UC16
+    usecase "Melihat Statistik" as UC17
+    usecase "Mengatur Booking Rules" as UC18
+    usecase "Mengelola Strike" as UC19
+    
+    ' === Supporting ===
+    usecase "Validasi Ketersediaan\nRuangan" as UCS1
+    usecase "Mengirim Notifikasi" as UCS2
+    usecase "Cek Prioritas\nUser" as UCS3
+    usecase "Auto-Cancel\nBentrok" as UCS4
+    usecase "Trigger Waitlist" as UCS5
+    
+    ' === Relationships ===
+    user --> UC1
+    user --> UC2
+    user --> UC3
+    user --> UC4
+    user --> UC5
+    user --> UC6
+    user --> UC7
+    user --> UC8
+    user --> UC9
+    user --> UC10
+    user --> UC11
+    
+    admin --> UC12
+    admin --> UC13
+    admin --> UC14
+    admin --> UC15
+    admin --> UC16
+    admin --> UC17
+    admin --> UC18
+    admin --> UC19
+    
+    UC4 ..> UCS1 : <<include>>
+    UC4 ..> UCS2 : <<include>>
+    UC14 ..> UCS3 : <<include>>
+    UC14 ..> UCS4 : <<include>>
+    UC14 ..> UCS2 : <<include>>
+    UC15 ..> UCS2 : <<include>>
+    UC8 ..> UCS5 : <<extend>>
+    UC14 ..> UCS5 : <<extend>>
+}
+
+@enduml

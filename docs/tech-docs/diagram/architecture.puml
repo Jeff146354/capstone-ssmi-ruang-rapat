@@ -1,0 +1,59 @@
+@startuml Deployment Architecture - IPB Reserve
+!theme plain
+skinparam roundcorner 8
+
+cloud "Internet" as internet {
+}
+
+node "Cloudflare Tunnel\nor Direct DNS" as cf
+
+node "Mini-PC (Production)" as server {
+    
+    node "Docker Engine" as docker {
+        
+        rectangle "Nginx Proxy Manager\n:80 / :443" as npm {
+        }
+        
+        rectangle "Frontend Container\n(Apache + PHP 8.1)\n:20080" as frontend {
+            component "Yii2 Frontend App" as fapp
+            note right of fapp
+              User-facing:
+              - Browse rooms
+              - Make bookings
+              - View history
+              - Notifications
+            end note
+        }
+        
+        rectangle "Backend Container\n(Apache + PHP 8.1)\n:21080" as backend {
+            component "Yii2 Backend App" as bapp
+            note right of bapp
+              Admin panel:
+              - Approve/reject
+              - Manage rooms
+              - Settings
+              - Strikes
+            end note
+        }
+        
+        database "MySQL 5.7\n:3306 (internal)" as db {
+        }
+    }
+}
+
+cloud "External Services" as ext {
+    component "Firebase Auth\n(Google SSO)" as firebase
+    component "SMTP\n(Email Verification)" as smtp
+}
+
+internet --> cf : HTTPS
+cf --> npm : HTTP
+npm --> frontend : proxy /
+npm --> backend : proxy /admin
+frontend --> db : TCP 3306
+backend --> db : TCP 3306
+frontend ..> firebase : verify token
+frontend ..> smtp : send email
+backend ..> smtp : send email
+
+@enduml
