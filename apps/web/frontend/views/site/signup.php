@@ -214,14 +214,14 @@ $this->title = 'Sign Up';
     import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyBjTlnbDoPMFiCO5IKwKPtFfy5OahPBgj0",
-        authDomain: "kepston17-8c88b.firebaseapp.com",
-        projectId: "kepston17-8c88b",
-        storageBucket: "kepston17-8c88b.firebasestorage.app",
-        messagingSenderId: "121678774667",
-        appId: "1:121678774667:web:ecd5c8e9a61cd9cc176f8e",
-        measurementId: "G-9GBJQB2DJ6"
-    };
+    apiKey: "AIzaSyCQAezj1CPbr7sR79GhHgWZ2R_y56pBJfE",
+    authDomain: "kepston17-8c88b-20c7d.firebaseapp.com",
+    projectId: "kepston17-8c88b-20c7d",
+    storageBucket: "kepston17-8c88b-20c7d.firebasestorage.app",
+    messagingSenderId: "20528068934",
+    appId: "1:20528068934:web:2fe85dfc2d9db9d8bfcd47",
+    measurementId: "G-5CNPEB9SHD"
+    }; 
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);

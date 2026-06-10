@@ -1,20 +1,12 @@
-@startuml Deployment Architecture - IPB Reserve
+@startuml Development Architecture - IPB Reserve
 !theme plain
 skinparam roundcorner 8
 
-cloud "Internet" as internet {
-}
+node "Developer Machine (localhost)" as dev {
 
-node "Cloudflare Tunnel\nor Direct DNS" as cf
-
-node "Mini-PC (Production)" as server {
-    
     node "Docker Engine" as docker {
-        
-        rectangle "Nginx Proxy Manager\n:80 / :443" as npm {
-        }
-        
-        rectangle "Frontend Container\n(Apache + PHP 8.1)\n:20080" as frontend {
+
+        rectangle "Frontend Container\n(yiisoftware/yii2-php:8.1-apache)\nPort 20080 → :80" as frontend {
             component "Yii2 Frontend App" as fapp
             note right of fapp
               User-facing:
@@ -22,38 +14,43 @@ node "Mini-PC (Production)" as server {
               - Make bookings
               - View history
               - Notifications
+              - Google SSO
             end note
         }
-        
-        rectangle "Backend Container\n(Apache + PHP 8.1)\n:21080" as backend {
+
+        rectangle "Backend Container\n(yiisoftware/yii2-php:8.1-apache)\nPort 21080 → :80" as backend {
             component "Yii2 Backend App" as bapp
             note right of bapp
               Admin panel:
               - Approve/reject
               - Manage rooms
-              - Settings
-              - Strikes
+              - Settings & Rules
+              - Strike management
+              - Dashboard stats
             end note
         }
-        
-        database "MySQL 5.7\n:3306 (internal)" as db {
+
+        database "MySQL 5.7\nPort 3306 (internal only)\nDB: yii2advanced" as db {
         }
     }
+
+    rectangle "Source Code\n(mounted as volume ./:/app)" as code
 }
 
-cloud "External Services" as ext {
+cloud "External (Internet)" as ext {
     component "Firebase Auth\n(Google SSO)" as firebase
-    component "SMTP\n(Email Verification)" as smtp
 }
 
-internet --> cf : HTTPS
-cf --> npm : HTTP
-npm --> frontend : proxy /
-npm --> backend : proxy /admin
-frontend --> db : TCP 3306
-backend --> db : TCP 3306
-frontend ..> firebase : verify token
-frontend ..> smtp : send email
-backend ..> smtp : send email
+frontend --> db : MySQL TCP
+backend --> db : MySQL TCP
+frontend ..> firebase : Token verification
+code --> frontend : Docker volume mount
+code --> backend : Docker volume mount
+
+actor "User" as user
+actor "Admin" as admin
+
+user --> frontend : http://localhost:20080
+admin --> backend : http://localhost:21080
 
 @enduml

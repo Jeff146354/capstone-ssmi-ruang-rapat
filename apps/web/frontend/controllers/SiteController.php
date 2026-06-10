@@ -285,8 +285,8 @@ class SiteController extends Controller
 
         // Verify token with Firebase
         // $auth = new \Kreait\Firebase\Auth();
-        // $auth = (new Factory)->withServiceAccount('..\..\common\firebase\kepston17-8c88b-firebase-adminsdk-fbsvc-5965324402.json')->createAuth();
-        $auth = (new Factory)->withServiceAccount(Yii::getAlias('@common/firebase/kepston17-8c88b-firebase-adminsdk-fbsvc-5965324402.json'))->createAuth();
+        // $auth = (new Factory)->withServiceAccount('..\..\common\firebase\kepston17-8c88b-20c7d-firebase-adminsdk-fbsvc-73d7eeaad1.json')->createAuth();
+        $auth = (new Factory)->withServiceAccount(Yii::getAlias('@common/firebase/kepston17-8c88b-20c7d-firebase-adminsdk-fbsvc-73d7eeaad1.json'))->createAuth();
 
         try {
             $verifiedIdToken = $auth->verifyIdToken($idToken);
@@ -313,7 +313,7 @@ class SiteController extends Controller
 
         } catch (\Exception $e) {
             Yii::error($e->getMessage(), 'firebase');
-            // throw new UnauthorizedHttpException("Invalid token.");
+            Yii::$app->session->setFlash('error', 'Firebase login gagal: ' . $e->getMessage());
             return $this->redirect(['site/login']);
         }
     }
@@ -332,7 +332,7 @@ class SiteController extends Controller
         }
 
         // $auth = new \Kreait\Firebase\Auth();
-        $auth = (new Factory)->withServiceAccount(Yii::getAlias('@common/firebase/kepston17-8c88b-firebase-adminsdk-fbsvc-5965324402.json'))->createAuth();
+        $auth = (new Factory)->withServiceAccount(Yii::getAlias('@common/firebase/kepston17-8c88b-20c7d-firebase-adminsdk-fbsvc-73d7eeaad1.json'))->createAuth();
 
         try {
             $verifiedIdToken = $auth->verifyIdToken($idToken);
@@ -369,6 +369,7 @@ class SiteController extends Controller
 
         } catch (\Exception $e) {
             Yii::error($e->getMessage(), 'firebase');
+            Yii::$app->session->setFlash('error', 'Firebase signup gagal: ' . $e->getMessage());
             return $this->redirect(['site/signup']);
         }
     }

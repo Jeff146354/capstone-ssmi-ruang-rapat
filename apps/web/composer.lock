@@ -1392,12 +1392,12 @@
             "version": "5.26.5",
             "source": {
                 "type": "git",
-                "url": "https://github.com/kreait/firebase-php.git",
+                "url": "https://github.com/beste/firebase-php.git",
                 "reference": "dd915017e0a33532deb5e2b82c0a6536dd408123"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kreait/firebase-php/zipball/dd915017e0a33532deb5e2b82c0a6536dd408123",
+                "url": "https://api.github.com/repos/beste/firebase-php/zipball/dd915017e0a33532deb5e2b82c0a6536dd408123",
                 "reference": "dd915017e0a33532deb5e2b82c0a6536dd408123",
                 "shasum": ""
             },
@@ -7562,5 +7562,5 @@
         "php": ">=7.4.0"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

@@ -4,11 +4,10 @@
 
 - **Docker Desktop** (Windows/Mac) or **Docker Engine** (Linux)
 - **Git**
-- (Optional) **PHP 8.1+** if running without Docker
 
 ---
 
-## Option 1: Docker (Recommended)
+## Step-by-Step: Running the App with Docker
 
 ### 1. Clone the repository
 
@@ -19,9 +18,9 @@ cd capstone-ssmi-ruang-rapat/apps/web
 
 ### 2. Create local config files
 
-These files contain secrets (DB passwords, keys) and are gitignored. You need to create them manually.
+These files contain secrets and are gitignored. Create them manually.
 
-**`common/config/main-local.php`:**
+#### `common/config/main-local.php`
 ```php
 <?php
 return [
@@ -36,25 +35,25 @@ return [
         'mailer' => [
             'class'            => \yii\symfonymailer\Mailer::class,
             'viewPath'         => '@common/mail',
-            'useFileTransport' => true, // Change to false + add SMTP for real emails
+            'useFileTransport' => true,
         ],
     ],
 ];
 ```
 
-**`common/config/params-local.php`:**
+#### `common/config/params-local.php`
 ```php
 <?php
 return [];
 ```
 
-**`frontend/config/main-local.php`:**
+#### `frontend/config/main-local.php`
 ```php
 <?php
 $config = [
     'components' => [
         'request' => [
-            'cookieValidationKey' => 'your-random-string-here',
+            'cookieValidationKey' => 'your-random-string-frontend',
         ],
     ],
 ];
@@ -67,21 +66,38 @@ if (!YII_ENV_TEST) {
 return $config;
 ```
 
-**`frontend/config/params-local.php`:**
+#### `frontend/config/params-local.php`
 ```php
 <?php
 return [];
 ```
 
-**`backend/config/main-local.php`:** (same structure as frontend, different cookie key)
+#### `backend/config/main-local.php`
+```php
+<?php
+$config = [
+    'components' => [
+        'request' => [
+            'cookieValidationKey' => 'your-random-string-backend',
+        ],
+    ],
+];
+if (!YII_ENV_TEST) {
+    $config['bootstrap'][] = 'debug';
+    $config['modules']['debug'] = ['class' => \yii\debug\Module::class];
+    $config['bootstrap'][] = 'gii';
+    $config['modules']['gii'] = ['class' => \yii\gii\Module::class];
+}
+return $config;
+```
 
-**`backend/config/params-local.php`:**
+#### `backend/config/params-local.php`
 ```php
 <?php
 return [];
 ```
 
-**`console/config/main-local.php`:**
+#### `console/config/main-local.php`
 ```php
 <?php
 return [
@@ -90,15 +106,17 @@ return [
 ];
 ```
 
-**`console/config/params-local.php`:**
+#### `console/config/params-local.php`
 ```php
 <?php
 return [];
 ```
 
-### 3. Create entry point files
+### 3. Create entry-point files
 
-**`frontend/web/index.php`:**
+These are also gitignored (created by Yii's `init` script which requires PHP locally).
+
+#### `frontend/web/index.php`
 ```php
 <?php
 defined('YII_DEBUG') or define('YII_DEBUG', true);
@@ -116,9 +134,10 @@ $config = yii\helpers\ArrayHelper::merge(
 (new yii\web\Application($config))->run();
 ```
 
-**`backend/web/index.php`:** (same but with backend paths)
+#### `backend/web/index.php`
+Same as above but replace `frontend` paths with `backend`.
 
-**`yii`** (project root console script):
+#### `yii` (project root — console entry point)
 ```php
 #!/usr/bin/env php
 <?php
@@ -139,7 +158,11 @@ $exitCode = $application->run();
 exit($exitCode);
 ```
 
-### 4. Start Docker
+### 4. Start Docker Desktop
+
+Open Docker Desktop and wait until it shows "Engine running" (green status).
+
+### 5. Start the containers
 
 ```bash
 docker-compose up -d
@@ -147,80 +170,92 @@ docker-compose up -d
 
 Wait ~30 seconds for MySQL to initialize.
 
-### 5. Install PHP dependencies
+### 6. Install PHP dependencies
 
 ```bash
 docker-compose exec frontend composer install --no-interaction
 ```
 
-### 6. Make yii script executable + run migrations
+This downloads all libraries into the vendor/ folder inside the container.
+
+### 7. Make the yii script executable and run migrations
 
 ```bash
 docker-compose exec frontend chmod +x /app/yii
 docker-compose exec frontend php /app/yii migrate --interactive=0
 ```
 
-### 7. Access the app
+This creates all database tables (user, room, reservations, booking_rules, notifications, etc.)
+
+### 8. Access the app
 
 | URL | What |
 |-----|------|
 | http://localhost:20080 | Frontend (user side) |
 | http://localhost:21080 | Backend (admin panel) |
 
-### 8. Create your first admin user
+### 9. Create your first user
 
-Register via frontend signup, then promote in DB:
+**Option A — Sign up with Google:**
+Click "Daftar dengan Google" on the signup page (requires Firebase setup, see below).
+
+**Option B — Regular signup:**
+Go to http://localhost:20080/site/signup and register. Then activate the account manually:
 
 ```bash
-docker-compose exec mysql mysql -u yii2advanced -psecret yii2advanced \
-  -e "UPDATE user SET role='admin', priority=99, status=10 WHERE email='your@email.com';"
+docker-compose exec mysql mysql -u yii2advanced -psecret yii2advanced -e "UPDATE user SET status=10 WHERE email='your@email.com';"
 ```
 
----
+### 10. Promote a user to admin
 
-## Option 2: XAMPP (Local PHP)
+```bash
+docker-compose exec mysql mysql -u yii2advanced -psecret yii2advanced -e "UPDATE user SET role='admin', priority=99 WHERE email='your@email.com';"
+```
 
-1. Install XAMPP (includes Apache + MySQL + PHP)
-2. Start Apache + MySQL from XAMPP panel
-3. Create database `yii2advanced` in phpMyAdmin
-4. Clone repo into `C:\xampp\htdocs\ssmi\`
-5. Create local config files (same as above, but `host=localhost`, `username=root`, `password=`)
-6. Open terminal in the project's `apps/web` folder
-7. Run `composer install`
-8. Run `php yii migrate`
-9. Access:
-   - Frontend: `http://localhost/ssmi/apps/web/frontend/web/`
-   - Backend: `http://localhost/ssmi/apps/web/backend/web/`
-
----
-
-## Production Deployment (Mini-PC)
-
-See [Architecture Diagram](../architecture.md) for the full deployment picture.
-
-1. Install Docker on mini-PC (Linux recommended)
-2. Clone repo + create config files with production DB credentials
-3. `docker-compose up -d`
-4. Set up Nginx Proxy Manager for domain routing + SSL
-5. Add cron jobs (see [Cron Jobs](../tech-docs/cron-jobs.md))
-6. (Optional) Use Cloudflare Tunnel for public access without port forwarding
+Then login to backend at http://localhost:21080/site/login.
 
 ---
 
 ## Firebase Setup (Google Login)
 
-1. Go to https://console.firebase.google.com
-2. Open your project → Project Settings → Service Accounts
-3. Generate a new private key (JSON file)
-4. Place it at: `apps/web/common/firebase/your-project-firebase-adminsdk.json`
-5. Update the filename reference in `frontend/controllers/SiteController.php` if needed
+Google login is optional but already integrated.
+
+### 1. Get access to the Firebase project
+
+Either use the existing project (`kepston17-8c88b`) or create your own at https://console.firebase.google.com.
+
+### 2. Enable Google Sign-In
+
+Firebase Console → Authentication → Sign-in method → Google → Enable.
+
+### 3. Download service account key
+
+Firebase Console → Project Settings → Service Accounts → Generate new private key.
+
+### 4. Place the JSON file
+
+Put it in:
+```
+apps/web/common/firebase/
+```
+
+### 5. Update the filename in code
+
+Open `apps/web/frontend/controllers/SiteController.php` and ensure the filename in `withServiceAccount(...)` matches your downloaded JSON filename. There are 2 places to update (in `actionFirebaseLogin` and `actionFirebaseSignup`).
+
+### 6. Update firebaseConfig in views (if using your own project)
+
+Update the `firebaseConfig` object in:
+- `frontend/views/site/login.php`
+- `frontend/views/site/signup.php`
 
 ---
 
-## Email Verification Setup
+## Email Verification (Optional)
+
+By default, emails are saved to files (not sent). To enable real email sending:
 
 Update `common/config/main-local.php`:
-
 ```php
 'mailer' => [
     'class'            => \yii\symfonymailer\Mailer::class,
@@ -232,7 +267,22 @@ Update `common/config/main-local.php`:
 ],
 ```
 
-**Recommended services:** Mailtrap (dev), Gmail App Password (prod), Brevo (free tier).
+Recommended: Use Mailtrap.io for development (catches emails in a fake inbox).
+
+---
+
+## Stopping and Restarting
+
+```bash
+# Stop everything
+docker-compose down
+
+# Start again
+docker-compose up -d
+
+# Restart after code changes
+docker-compose restart frontend backend
+```
 
 ---
 
@@ -241,9 +291,20 @@ Update `common/config/main-local.php`:
 | Problem | Solution |
 |---------|----------|
 | "Could not open input file: yii" | Create the `yii` file in project root (see step 3) |
-| Directory listing instead of app | `index.php` missing in `frontend/web/` or `backend/web/` |
+| Directory listing (Index of /) | `index.php` missing in `frontend/web/` or `backend/web/` |
 | "Class not found" errors | Run `composer install` inside the container |
-| DB connection refused | MySQL container might still be booting. Wait 30s and retry |
-| "Table doesn't exist" | Run `php yii migrate --interactive=0` |
-| Firebase JSON error | Place the service account JSON in `common/firebase/` |
-| Login fails silently after signup | User status is 9 (inactive). Either configure SMTP for verification, or set `status=10` in DB |
+| DB connection refused | MySQL container still booting. Wait 30s and retry |
+| "Table doesn't exist" | Run `php /app/yii migrate --interactive=0` |
+| Firebase JSON error | Service account JSON missing or wrong filename in code |
+| Login fails after signup | User status is 9 (inactive). Set `status=10` in DB or configure SMTP |
+| "Docker daemon not running" | Open Docker Desktop and wait for green "Engine running" status |
+| `version` is obsolete warning | Harmless. Docker Compose v2 no longer needs the `version` field |
+
+---
+
+## What's NOT set up yet
+
+- Production deployment (VPS/mini-PC) — not yet deployed
+- QR Check-in system — UI placeholder only, no real QR generation
+- Real SMTP email sending — using file transport in dev
+- Cron jobs — commands exist but not scheduled yet

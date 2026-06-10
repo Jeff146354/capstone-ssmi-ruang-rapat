@@ -234,8 +234,8 @@ $this->title = 'Sign In';
             <!-- Divider -->
             <div class="ipb-divider"><span>OR</span></div>
 
-            <!-- Google login (placeholder — SSO not yet implemented) -->
-            <a href="#" class="btn-ipb-google" onclick="alert('Google login belum diimplementasi.'); return false;">
+            <!-- Google login -->
+            <a href="#" class="btn-ipb-google" id="google-login">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -255,6 +255,57 @@ $this->title = 'Sign In';
         <?php ActiveForm::end(); ?>
     </div>
 </div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBjTlnbDoPMFiCO5IKwKPtFfy5OahPBgj0",
+    authDomain: "kepston17-8c88b.firebaseapp.com",
+    projectId: "kepston17-8c88b",
+    storageBucket: "kepston17-8c88b.firebasestorage.app",
+    messagingSenderId: "121678774667",
+    appId: "1:121678774667:web:ecd5c8e9a61cd9cc176f8e",
+    measurementId: "G-9GBJQB2DJ6"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+document.getElementById('google-login').addEventListener('click', async (e) => {
+    e.preventDefault();
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const token = await result.user.getIdToken();
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (!csrfToken) throw new Error('CSRF token not found');
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '<?= \yii\helpers\Url::to(['site/firebase-login']) ?>';
+
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '<?= Yii::$app->request->csrfParam ?>';
+        csrfInput.value = csrfToken.content;
+        form.appendChild(csrfInput);
+
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'idToken';
+        input.value = token;
+        form.appendChild(input);
+
+        document.body.appendChild(form);
+        form.submit();
+    } catch (error) {
+        console.error('Login failed:', error);
+        alert('Login dengan Google gagal. Pastikan akun Anda sudah terdaftar melalui Sign Up Google terlebih dahulu.');
+    }
+});
+</script>
 
 <script>
 // Toggle password visibility
