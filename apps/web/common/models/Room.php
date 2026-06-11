@@ -38,22 +38,33 @@ class Room extends \yii\db\ActiveRecord
     {
         return [
             [['description', 'fr_img', 'location', 'contact'], 'default', 'value' => null],
-            [['capacity'], 'default', 'value' => 0],
             [['is_active'], 'default', 'value' => true],
             [['room', 'name'], 'required'],
             [['description'], 'string'],
-            [['capacity'], 'integer'],
+            [['capacity'], 'integer', 'min' => 1, 'max' => 10000,
+                'tooSmall' => 'Kapasitas harus minimal 1 orang.',
+                'tooBig'   => 'Kapasitas tidak realistis.',
+            ],
+            [['capacity'], 'required', 'message' => 'Kapasitas wajib diisi.'],
             [['is_active'], 'boolean'],
-            [['room', 'name', 'fr_img', 'location', 'contact'], 'string', 'max' => 255],
-            // Unique room code — exclude self on update
-            [['room'], 'unique', 'targetAttribute' => 'room',
+            [['room', 'name', 'location'], 'string', 'max' => 255],
+            [['contact'], 'string', 'max' => 255],
+            [['contact'], 'match', 'pattern' => '/^.+\s[\d\+\-\s]{8,}$/',
+                'message' => 'Format kontak: Nama diikuti nomor HP (contoh: Nugraha 081234567890)',
+                'when' => function ($model) { return !empty($model->contact); }
+            ],
+            // Unique room code — use raw query to bypass find() scope
+            [['room'], 'unique', 'targetClass' => '\common\models\Room',
                 'filter' => function ($query) {
+                    // Bypass the is_active scope for uniqueness check
+                    $query->where(['room' => $this->room]);
                     if (!$this->isNewRecord) {
                         $query->andWhere(['not', ['id' => $this->id]]);
                     }
-                }
+                },
+                'message' => 'ID Ruangan "{value}" sudah digunakan.',
             ],
-            // Allow file instance for fr_img (handled in controller, stored as string)
+            // fr_img handled in controller (file upload → string filename)
             [['fr_img'], 'safe'],
         ];
     }
@@ -127,19 +138,29 @@ class Room extends \yii\db\ActiveRecord
     }
 
     /**
-     * Only return active rooms by default.
+     * Default scope: only active rooms in normal queries.
+     * Use Room::findUnscoped() for admin views that need all rooms.
      */
     public static function find(): \yii\db\ActiveQuery
     {
-        return parent::find()->andWhere(['room.is_active' => true]);
+        return parent::find()->andWhere(['{{%room}}.is_active' => true]);
     }
 
     /**
-     * Find all rooms including inactive ones (for admin views).
+     * Find without the is_active filter (for admin, edit, delete operations).
      */
-    public static function findAll_($condition): array
+    public static function findUnscoped(): \yii\db\ActiveQuery
     {
-        return parent::find()->where($condition)->all();
+        return parent::find();
+    }
+
+    /**
+     * Find a room by ID, bypassing the is_active scope.
+     * Use this in controllers where admin needs to access any room.
+     */
+    public static function findById(int $id): ?self
+    {
+        return parent::find()->where(['id' => $id])->one();
     }
 
 }

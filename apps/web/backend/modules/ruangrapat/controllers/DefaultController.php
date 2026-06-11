@@ -80,7 +80,7 @@ class DefaultController extends BaseAdminModuleController
             $isUpdate = !empty($post['Room']['id']);
 
             if ($isUpdate) {
-                $model = Room::findOne((int) $post['Room']['id']);
+                $model = Room::findById((int) $post['Room']['id']);
                 if (!$model) {
                     throw new NotFoundHttpException("Ruangan tidak ditemukan.");
                 }
@@ -130,7 +130,7 @@ class DefaultController extends BaseAdminModuleController
             }
         }
 
-        $rooms = Room::find()->all();
+        $rooms = Room::findUnscoped()->all();
         return $this->render('rooms', [
             'model' => $model,
             'rooms' => $rooms,
