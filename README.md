@@ -105,6 +105,6 @@ For detailed setup instructions, see [docs/installation-manual/setup.md](docs/in
 
 ## Team
 
-Capstone Project — Kelompok 17, Ilmu Komputer, SSMI IPB University, Semester Genap TA 2024/2025.
+Capstone Project — Ilmu Komputer, SSMI IPB University, Semester Genap TA 2025/2026.
 
-Pembimbing: DrEng. Heru Sukoco, S.Si., M.T.
+Pembimbing: Dr Eng. Heru Sukoco, S.Si., M.T.
