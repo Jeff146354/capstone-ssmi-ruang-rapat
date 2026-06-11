@@ -163,13 +163,9 @@ class SiteController extends Controller
         if ($model->load(Yii::$app->request->post())) {
             $user = $model->signup();
             if ($user) {
-                Yii::$app->session->setFlash(
-                    'success',
-                    'Registrasi berhasil! Kami telah mengirim email verifikasi ke <strong>' .
-                    Html::encode($model->email) .
-                    '</strong>. Silakan cek inbox Anda dan klik link verifikasi untuk mengaktifkan akun.'
-                );
-                return $this->redirect(['/site/login']);
+                Yii::$app->user->login($user);
+                Yii::$app->session->setFlash('success', 'Registrasi berhasil! Selamat datang, ' . $user->username . '.');
+                return $this->goHome();
             }
         }
 

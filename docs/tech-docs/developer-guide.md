@@ -33,7 +33,38 @@ A guide for anyone continuing development on this project.
 
 ---
 
-## How to Add a New Feature
+## How to Enable Email Verification (Currently Disabled)
+
+Email verification is fully built but turned off. To enable it:
+
+1. **Configure SMTP** in `common/config/main-local.php`:
+   ```php
+   'mailer' => [
+       'class'            => \yii\symfonymailer\Mailer::class,
+       'viewPath'         => '@common/mail',
+       'useFileTransport' => false,  // ← change from true to false
+       'transport'        => [
+           'dsn' => 'smtp://user:pass@smtp.example.com:587',
+       ],
+   ],
+   ```
+
+2. **Edit `frontend/models/SignupForm.php`** — the file has clear comments showing exactly what to uncomment:
+   - Change `$user->status` from `STATUS_ACTIVE` to `STATUS_INACTIVE`
+   - Uncomment `$user->generateEmailVerificationToken()`
+   - Change the return line to include `$this->sendEmail($user)`
+
+3. **Edit `frontend/controllers/SiteController.php`** — in `actionSignup()`:
+   - Remove the `Yii::$app->user->login($user)` line
+   - Change the flash message to "Check your email"
+   - Redirect to login page instead of home
+
+**Everything else is already wired:**
+- Email template: `common/mail/emailVerify-html.php`
+- Verify action: `SiteController::actionVerifyEmail($token)`
+- Resend action: `SiteController::actionResendVerificationEmail()`
+
+---
 
 ### Example: Adding a "Room Facilities" feature
 

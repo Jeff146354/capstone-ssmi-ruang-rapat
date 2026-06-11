@@ -21,6 +21,22 @@ For detailed setup instructions, see [docs/installation-manual/setup.md](docs/in
 
 ---
 
+## Creating an Admin Account
+
+After running migrations, create a user account first (via Google signup on the frontend or regular signup), then promote it to admin:
+
+```bash
+# Promote a user to admin by their email
+docker-compose exec mysql mysql -u yii2advanced -psecret yii2advanced \
+  -e "UPDATE user SET role='admin', priority=99, status=10 WHERE email='your@email.com';"
+```
+
+Then login at http://localhost:21080/site/login with that account's username and password.
+
+**Note:** Only accounts with `role='admin'` can access the backend. Non-admin users are rejected at login with "Akun Anda tidak memiliki akses sebagai admin."
+
+---
+
 ## Tech Stack
 
 | Component | Technology |

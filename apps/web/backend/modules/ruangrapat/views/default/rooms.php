@@ -79,12 +79,12 @@ $this->title = "Kelola Ruang — IPB Reserve";
 }
 .btn-save:hover { background: #A04100; }
 .btn-cancel-edit {
-    padding: 12px 28px; background: #fff; color: #575E70;
-    font-size: 14px; font-weight: 600; border: 1.5px solid #E2BFB0; border-radius: 8px;
-    cursor: pointer; transition: border-color .15s;
+    padding: 12px 28px; background: #fff; color: #FF6B00;
+    font-size: 14px; font-weight: 600; border: 1.5px solid #FF6B00; border-radius: 8px;
+    cursor: pointer; transition: background .15s, color .15s;
     display: none; margin-left: 12px;
 }
-.btn-cancel-edit:hover { border-color: #ef4444; color: #ef4444; }
+.btn-cancel-edit:hover { background: #FF6B00; color: #fff; }
 
 /* Table card */
 .table-card {

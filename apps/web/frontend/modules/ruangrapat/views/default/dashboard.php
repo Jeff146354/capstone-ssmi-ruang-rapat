@@ -75,7 +75,8 @@ $this->title = 'Home';
 .search-input:focus { border-color: #FF6B00; box-shadow: 0 0 0 3px rgba(255,107,0,.1); }
 .search-input-wrap { position: relative; }
 .search-input-icon {
-    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    position: absolute; left: 12px; top: 0;
+    height: 44px; display: flex; align-items: center;
     color: #8E7164; font-size: 14px; pointer-events: none;
 }
 .btn-search {

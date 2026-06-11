@@ -9,24 +9,41 @@ $this->title = 'Admin - Semua Pengajuan Reservasi';
 ?>
 
 <div class="booking-default-admin">
-    <h1 class="mb-3"><?= $this->title ?></h1>
+    <h1 class="mb-1" style="color:#151C27; font-size:26px; font-weight:700;"><?= $this->title ?></h1>
+    <p style="color:#575E70; font-size:14px; margin-bottom:24px;">Kelola semua pengajuan reservasi dari pengguna.</p>
 
     <?php if (Yii::$app->session->hasFlash('success')): ?>
-        <div class="alert alert-success"><?= Yii::$app->session->getFlash('success') ?></div>
+        <div class="alert alert-success rounded-3"><?= Yii::$app->session->getFlash('success') ?></div>
     <?php endif ?>
     <?php if (Yii::$app->session->hasFlash('error')): ?>
-        <div class="alert alert-danger"><?= Yii::$app->session->getFlash('error') ?></div>
+        <div class="alert alert-danger rounded-3"><?= Yii::$app->session->getFlash('error') ?></div>
     <?php endif ?>
 
-    <div class="mb-3">
-        <strong>Urutkan berdasarkan:</strong>
-        <?= Html::a('Status',    ['/booking/default/admin', 'orderBy' => 'status'], ['class' => 'btn btn-outline-secondary btn-sm ' . ($orderBy === 'status' ? 'active' : '')]) ?>
-        <?= Html::a('Tanggal',   ['/booking/default/admin', 'orderBy' => 'date'],   ['class' => 'btn btn-outline-secondary btn-sm ' . ($orderBy === 'date'   ? 'active' : '')]) ?>
-        <?= Html::a('Nama Ruang',['/booking/default/admin', 'orderBy' => 'room'],   ['class' => 'btn btn-outline-secondary btn-sm ' . ($orderBy === 'room'   ? 'active' : '')]) ?>
+    <div class="mb-4 d-flex align-items-center gap-2 flex-wrap">
+        <span style="color:#575E70; font-size:13px; font-weight:600;">Urutkan:</span>
+        <?= Html::a('<i class="fas fa-circle me-1"></i>Status', ['/booking/default/admin', 'orderBy' => 'status'], [
+            'class' => 'btn btn-sm rounded-pill ' . ($orderBy === 'status' ? 'text-white' : ''),
+            'style' => $orderBy === 'status'
+                ? 'background:#FF6B00; border:1.5px solid #FF6B00; font-size:13px; font-weight:600;'
+                : 'background:#fff; border:1.5px solid #E2BFB0; color:#575E70; font-size:13px; font-weight:600;',
+        ]) ?>
+        <?= Html::a('<i class="fas fa-calendar me-1"></i>Tanggal', ['/booking/default/admin', 'orderBy' => 'date'], [
+            'class' => 'btn btn-sm rounded-pill ' . ($orderBy === 'date' ? 'text-white' : ''),
+            'style' => $orderBy === 'date'
+                ? 'background:#FF6B00; border:1.5px solid #FF6B00; font-size:13px; font-weight:600;'
+                : 'background:#fff; border:1.5px solid #E2BFB0; color:#575E70; font-size:13px; font-weight:600;',
+        ]) ?>
+        <?= Html::a('<i class="fas fa-door-open me-1"></i>Nama Ruang', ['/booking/default/admin', 'orderBy' => 'room'], [
+            'class' => 'btn btn-sm rounded-pill ' . ($orderBy === 'room' ? 'text-white' : ''),
+            'style' => $orderBy === 'room'
+                ? 'background:#FF6B00; border:1.5px solid #FF6B00; font-size:13px; font-weight:600;'
+                : 'background:#fff; border:1.5px solid #E2BFB0; color:#575E70; font-size:13px; font-weight:600;',
+        ]) ?>
     </div>
 
-    <table class="table table-hover">
-        <thead>
+    <div class="card" style="border:none; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,.04); overflow:hidden;">
+    <table class="table table-hover mb-0" style="font-size:14px;">
+        <thead style="background:#151C27; color:#fff;">
             <tr>
                 <th>#</th>
                 <th>Nama Pemesan</th>
@@ -131,6 +148,7 @@ $this->title = 'Admin - Semua Pengajuan Reservasi';
             <?php endforeach ?>
         </tbody>
     </table>
+    </div><!-- /card -->
 </div>
 
 <!-- Cancel / Reject Modal with Reason -->

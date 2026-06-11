@@ -90,11 +90,13 @@ $this->title = 'Sign In';
 .ipb-input:focus { border-color: #FF6B00; box-shadow: 0 0 0 3px rgba(255,107,0,.1); }
 .ipb-input-wrap { position: relative; }
 .ipb-input-icon {
-    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    position: absolute; left: 14px; top: 0;
+    height: 50px; display: flex; align-items: center;
     color: #575E70; font-size: 14px; pointer-events: none;
 }
 .ipb-input-icon-right {
-    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    position: absolute; right: 14px; top: 0;
+    height: 50px; display: flex; align-items: center;
     color: #575E70; font-size: 14px; cursor: pointer;
 }
 

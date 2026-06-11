@@ -48,7 +48,7 @@ $topRoomValues = Json::encode(array_map('intval', array_column($topRooms, 'total
                 <div class="card-body">
                     <div class="text-muted small mb-1">Pengguna Terdaftar</div>
                     <div class="display-6 fw-bold"><?= $penggunaTerdaftar ?></div>
-                    <a href="<?= \yii\helpers\Url::to(['/ruang-rapat/strike/index']) ?>" class="btn btn-sm btn-outline-warning mt-2">Kelola Strike</a>
+                    <a href="<?= \yii\helpers\Url::to(['/ruang-rapat/strike/index']) ?>" class="btn btn-sm mt-2" style="background:#FF6B00; color:#fff; font-weight:600;">Kelola Strike</a>
                 </div>
             </div>
         </div>
