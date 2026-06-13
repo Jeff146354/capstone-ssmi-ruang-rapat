@@ -17,6 +17,7 @@ desktop.ini
 .vscode/
 *.suo
 *.user
+*.code-workspace
 nbproject/
 .buildpath
 .project
