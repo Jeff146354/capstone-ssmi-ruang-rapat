@@ -27,8 +27,7 @@ After running migrations, create a user account first (via Google signup on the 
 
 ```bash
 # Promote a user to admin by their email
-docker-compose exec mysql mysql -u yii2advanced -psecret yii2advanced \
-  -e "UPDATE user SET role='admin', priority=99, status=10 WHERE email='your@email.com';"
+docker-compose exec mysql mysql -u yii2advanced -psecret yii2advanced -e "UPDATE user SET role='admin', priority=99, status=10 WHERE email='your@email.com';"
 ```
 
 Then login at http://localhost:21080/site/login with that account's username and password.

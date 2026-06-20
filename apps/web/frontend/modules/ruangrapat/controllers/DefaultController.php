@@ -112,6 +112,16 @@ class DefaultController extends Controller
             }
 
             $model = $result['model'];
+
+            // If room availability was the issue, offer waitlist
+            if ($model->hasErrors('room_id')) {
+                return $this->render('waitlist', [
+                    'room'      => $room,
+                    'date'      => $model->date,
+                    'startTime' => $model->start_time,
+                    'endTime'   => $model->end_time,
+                ]);
+            }
         } else {
             $model->user_id = Yii::$app->user->id;
             $model->room_id = $room->id;

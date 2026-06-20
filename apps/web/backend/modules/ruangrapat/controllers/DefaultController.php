@@ -146,13 +146,9 @@ class DefaultController extends BaseAdminModuleController
      */
     public function actionDeleteRoom($id)
     {
-        $model = Room::findOne($id);
+        $model = Room::findById((int) $id);
         if ($model === null) {
-            // Also check inactive rooms in case admin tries to delete an already-soft-deleted room
-            $model = \yii\db\ActiveRecord::findOne(['id' => $id]);
-            if ($model === null) {
-                throw new NotFoundHttpException("Ruangan dengan ID $id tidak ditemukan.");
-            }
+            throw new NotFoundHttpException("Ruangan dengan ID $id tidak ditemukan.");
         }
 
         if (!$model->softDelete()) {
@@ -165,6 +161,23 @@ class DefaultController extends BaseAdminModuleController
             Yii::$app->session->setFlash('success', "Ruangan \"{$model->name}\" berhasil dinonaktifkan.");
         }
 
+        return $this->redirect(['rooms']);
+    }
+
+    /**
+     * Re-activate a soft-deleted room.
+     */
+    public function actionActivateRoom($id)
+    {
+        $model = Room::findById((int) $id);
+        if ($model === null) {
+            throw new NotFoundHttpException("Ruangan dengan ID $id tidak ditemukan.");
+        }
+
+        $model->is_active = true;
+        $model->save(false);
+
+        Yii::$app->session->setFlash('success', "Ruangan \"{$model->name}\" berhasil diaktifkan kembali.");
         return $this->redirect(['rooms']);
     }
 }

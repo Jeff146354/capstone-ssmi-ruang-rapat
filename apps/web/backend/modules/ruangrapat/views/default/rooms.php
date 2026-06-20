@@ -319,6 +319,12 @@ $this->title = "Kelola Ruang — IPB Reserve";
                                                         data-bs-target="#deleteModal-<?= $room->id ?>">
                                                     <i class="fas fa-power-off"></i> Nonaktifkan
                                                 </button>
+                                            <?php else: ?>
+                                                <?= Html::beginForm(['/ruang-rapat/default/activate-room', 'id' => $room->id], 'post', ['style' => 'display:inline']) ?>
+                                                    <button type="submit" class="btn-edit-sm" style="background:#22c55e; border:none;">
+                                                        <i class="fas fa-check-circle"></i> Aktifkan
+                                                    </button>
+                                                <?= Html::endForm() ?>
                                             <?php endif ?>
                                         </div>
 

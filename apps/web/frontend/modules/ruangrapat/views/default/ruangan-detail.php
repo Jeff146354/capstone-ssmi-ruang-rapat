@@ -178,9 +178,6 @@ use yii\helpers\Url;
                 <a href="<?= Url::to(['jadwal', 'room_id' => $model->id]) ?>" class="btn-cta-outline">
                     <i class="fas fa-calendar me-2"></i>Lihat Jadwal
                 </a>
-                <a href="<?= Url::to(['waitlist-form', 'id' => $model->id]) ?>" class="btn-cta-waitlist">
-                    <i class="fas fa-clock me-2"></i>Daftar Tunggu
-                </a>
             </div>
         </div>
 

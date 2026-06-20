@@ -13,7 +13,7 @@ use Yii;
 class StrikeController extends BaseAdminModuleController
 {
     /**
-     * List all users with active strikes.
+     * List all users with active strikes + all users for search.
      */
     public function actionIndex()
     {
@@ -23,7 +23,10 @@ class StrikeController extends BaseAdminModuleController
             ->groupBy('user.id')
             ->all();
 
-        return $this->render('index', ['users' => $users]);
+        // All non-admin users for the search/issue section
+        $allUsers = User::find()->where(['!=', 'role', 'admin'])->orderBy(['username' => SORT_ASC])->all();
+
+        return $this->render('index', ['users' => $users, 'allUsers' => $allUsers]);
     }
 
     /**
