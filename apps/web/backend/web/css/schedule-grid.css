@@ -1,0 +1,629 @@
+/* ═══════════════════════════════════════════════════
+   Schedule Grid – Interactive Booking Blocks
+   Frontend version (supports read-only mode)
+   ═══════════════════════════════════════════════════ */
+
+/* ── Toolbar ── */
+.sg-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.sg-snap-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+}
+
+.sg-snap-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #FF6B00;
+}
+
+.sg-snap-toggle select {
+    padding: 4px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #f9fafb;
+}
+
+.sg-lab-select {
+    padding: 6px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #f9fafb;
+    margin-left: auto;
+}
+
+/* ── Konfirmasi Bar ── */
+.sg-confirm-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #FFFBF5;
+    border: 1px solid #FFDBCC;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    transition: opacity 0.2s;
+}
+
+.sg-confirm-bar.sg-hidden {
+    display: none;
+}
+
+.sg-confirm-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #FF6B00;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 20px;
+}
+
+.sg-confirm-badge-count {
+    background: rgba(255,255,255,0.25);
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 11px;
+}
+
+.sg-confirm-text {
+    color: #A04100;
+    font-size: 13px;
+    font-weight: 600;
+    flex: 1;
+}
+
+.sg-btn-confirm {
+    padding: 8px 20px;
+    background: #FF6B00;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+}
+
+.sg-btn-confirm:hover {
+    background: #A04100;
+}
+
+.sg-btn-confirm:active {
+    transform: scale(0.97);
+}
+
+.sg-btn-discard {
+    padding: 8px 16px;
+    background: #f3f4f6;
+    color: #6b7280;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.sg-btn-discard:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+/* ── Grid Wrapper ── */
+.sg-grid-wrapper {
+    display: flex;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 75vh;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* ── Time Axis ── */
+.sg-time-axis {
+    position: relative;
+    width: 60px;
+    min-width: 60px;
+    border-right: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.sg-time-label {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    transform: translateY(-50%);
+    padding: 0 4px;
+}
+
+/* ── Day Columns ── */
+.sg-columns-wrap {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+}
+
+.sg-day-column {
+    position: relative;
+    flex: 1;
+    min-width: 120px;
+    border-right: 1px solid #f3f4f6;
+}
+
+.sg-day-column:last-child {
+    border-right: none;
+}
+
+/* ── Day Header ── */
+.sg-day-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    background: #151C27;
+    color: #fff;
+    text-align: center;
+    padding: 6px 4px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    height: 50px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.sg-day-header .sg-day-name {
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sg-day-header .sg-day-date {
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 1px;
+}
+
+.sg-day-header.sg-day-today {
+    background: #FF6B00;
+}
+
+/* ── Week Navigation ── */
+.sg-week-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.sg-week-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #151C27;
+    flex: 1;
+    text-align: center;
+}
+
+.sg-week-btn {
+    padding: 6px 12px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.sg-week-btn:hover {
+    background: #e5e7eb;
+}
+
+.sg-week-today {
+    background: #FF6B00;
+    color: #fff;
+    border-color: #FF6B00;
+}
+
+.sg-week-today:hover {
+    background: #A04100;
+}
+
+/* ── Block readonly indicator ── */
+.sg-block-readonly {
+    cursor: default;
+    opacity: 0.85;
+}
+
+.sg-block-readonly .sg-block-resize-handle {
+    display: none;
+}
+
+/* ── Grid Lines ── */
+.sg-grid-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #f3f4f6;
+    pointer-events: none;
+}
+
+.sg-grid-line-hour {
+    background: #e5e7eb;
+}
+
+/* ── Booking Blocks ── */
+.sg-block {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    border-radius: 6px;
+    padding: 6px 8px;
+    cursor: grab;
+    user-select: none;
+    overflow: hidden;
+    z-index: 5;
+    transition: box-shadow 0.15s, opacity 0.15s;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.sg-block:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 6;
+}
+
+.sg-block-content {
+    pointer-events: none;
+}
+
+.sg-block-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+.sg-block-time {
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    margin-top: 2px;
+}
+
+/* ── Read-only mode ── */
+.sg-readonly .sg-block {
+    cursor: default;
+}
+
+.sg-readonly .sg-block-resize-handle {
+    display: none;
+}
+
+.sg-readonly .sg-day-column {
+    cursor: default;
+}
+
+/* ── Resize Handle ── */
+.sg-block-resize-handle {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    cursor: ns-resize;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 0 0 6px 6px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.sg-block:hover .sg-block-resize-handle {
+    opacity: 1;
+}
+
+/* ── Drag States ── */
+.sg-block-dragging {
+    opacity: 0.4;
+    cursor: grabbing;
+}
+
+.sg-block-ghost {
+    opacity: 0.7;
+    border: 2px dashed rgba(255, 255, 255, 0.8);
+    pointer-events: none;
+    z-index: 20;
+}
+
+.sg-block-valid {
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.5);
+}
+
+.sg-block-invalid {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.5);
+}
+
+.sg-block-resizing {
+    z-index: 20;
+    box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.6);
+}
+
+/* ── Pending change indicator ── */
+.sg-block-pending {
+    outline: 2px dashed #FF6B00;
+    outline-offset: 1px;
+}
+
+/* ── Edit Panel / Modal ── */
+.sg-edit-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sg-edit-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.sg-edit-modal {
+    position: relative;
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    animation: sg-modal-in 0.2s ease-out;
+}
+
+@keyframes sg-modal-in {
+    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.sg-edit-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 0;
+}
+
+.sg-edit-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #151C27;
+    margin: 0;
+}
+
+.sg-edit-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #6b7280;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+}
+
+.sg-edit-close:hover {
+    color: #ef4444;
+}
+
+.sg-edit-body {
+    padding: 20px 24px;
+}
+
+.sg-field {
+    margin-bottom: 16px;
+}
+
+.sg-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.sg-field input,
+.sg-field select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #151C27;
+    background: #f9fafb;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.sg-field input:focus,
+.sg-field select:focus {
+    border-color: #FF6B00;
+    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+}
+
+.sg-field-row {
+    display: flex;
+    gap: 12px;
+}
+
+.sg-field-row .sg-field {
+    flex: 1;
+}
+
+/* ── Color Swatches ── */
+.sg-color-swatches {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.sg-swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: transform 0.1s, border-color 0.15s;
+}
+
+.sg-swatch:hover {
+    transform: scale(1.15);
+}
+
+.sg-swatch-active {
+    border-color: #151C27;
+    transform: scale(1.15);
+}
+
+/* ── Edit Footer ── */
+.sg-edit-footer {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    padding: 0 24px 20px;
+}
+
+.sg-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+}
+
+.sg-btn:active {
+    transform: scale(0.97);
+}
+
+.sg-btn-primary {
+    background: #FF6B00;
+    color: #fff;
+}
+
+.sg-btn-primary:hover {
+    background: #A04100;
+}
+
+.sg-btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.sg-btn-secondary:hover {
+    background: #e5e7eb;
+}
+
+.sg-btn-danger {
+    background: #fef2f2;
+    color: #ef4444;
+    margin-right: auto;
+}
+
+.sg-btn-danger:hover {
+    background: #ef4444;
+    color: #fff;
+}
+
+/* ── Error message ── */
+.sg-edit-error {
+    color: #ef4444;
+    font-size: 12px;
+    font-weight: 600;
+    min-height: 18px;
+    margin-top: 8px;
+}
+
+/* ── Toast ── */
+.sg-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 99999;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s, transform 0.3s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.sg-toast-show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.sg-toast-success {
+    background: #22c55e;
+    color: #fff;
+}
+
+.sg-toast-error {
+    background: #ef4444;
+    color: #fff;
+}
+
+/* ── Mini grid (embedded in form pages) ── */
+.sg-mini .sg-grid-wrapper {
+    max-height: 50vh;
+}
+
+.sg-mini .sg-toolbar {
+    padding: 8px 12px;
+}

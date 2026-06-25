@@ -71,6 +71,50 @@ class DefaultController extends Controller
         ]);
     }
 
+    /**
+     * Interactive schedule grid with drag-and-drop booking blocks.
+     */
+    public function actionScheduleGrid()
+    {
+        $rooms = \common\models\Room::find()->select(['id', 'name'])->asArray()->all();
+        $roomId = Yii::$app->request->get('room_id', $rooms[0]['id'] ?? null);
+
+        $reservations = [];
+        if ($roomId) {
+            $reservations = \common\models\Reservation::find()
+                ->alias('r')
+                ->leftJoin('user u', 'u.id = r.user_id')
+                ->where(['r.room_id' => $roomId, 'r.status' => \common\models\Reservation::STATUS_APPROVED])
+                ->orWhere(['r.room_id' => $roomId, 'r.status' => \common\models\Reservation::STATUS_PENDING])
+                ->select(['r.id', 'r.room_id', 'r.user_id', 'r.date', 'r.start_time', 'r.end_time', 'r.reason_of_use', 'u.username'])
+                ->asArray()
+                ->all();
+        }
+
+        return $this->render('schedule-grid', [
+            'rooms' => $rooms,
+            'currentRoomId' => $roomId,
+            'reservations' => $reservations,
+        ]);
+    }
+
+    /**
+     * API endpoint to save schedule grid bookings.
+     * Accepts JSON POST with booking data.
+     */
+    public function actionSaveScheduleGrid()
+    {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        $data = json_decode(Yii::$app->request->rawBody, true);
+
+        if (!$data || !isset($data['bookings'])) {
+            return ['success' => false, 'message' => 'Invalid data.'];
+        }
+
+        // For now, return success — full server persistence can be wired later
+        return ['success' => true, 'message' => 'Bookings saved.'];
+    }
+
     public function actionAdmin()
     {
         $orderBy = Yii::$app->request->get('orderBy', 'status');

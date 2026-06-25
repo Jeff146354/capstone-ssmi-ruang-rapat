@@ -132,6 +132,7 @@ AppAsset::register($this);
         ];
         $bookingLinks = [
             ['label' => 'Semua Reservasi', 'icon' => 'fas fa-calendar-check', 'url' => ['/booking/default/admin'], 'match' => 'default/admin'],
+            ['label' => 'Jadwal Grid', 'icon' => 'fas fa-th', 'url' => ['/booking/default/schedule-grid'], 'match' => 'default/schedule-grid'],
         ];
         $systemLinks = [
             ['label' => 'Pengaturan', 'icon' => 'fas fa-cog', 'url' => ['/ruang-rapat/settings/index'], 'match' => 'settings/index'],

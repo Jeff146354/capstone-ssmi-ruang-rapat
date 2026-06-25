@@ -1,7 +1,36 @@
 <?php
 /** @var common\models\Room $model */
 use yii\helpers\Html;
+use yii\helpers\Json;
 use yii\helpers\Url;
+use common\models\Reservation;
+
+// Register schedule grid assets
+$this->registerCssFile('@web/css/schedule-grid.css');
+$this->registerJsFile('@web/js/schedule-grid.js', ['position' => \yii\web\View::POS_END]);
+
+// Load reservations for the grid
+$colors = ['#FF6B00', '#3b82f6', '#22c55e', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899'];
+$reservations = Reservation::find()
+    ->where(['room_id' => $model->id])
+    ->andWhere(['in', 'status', [Reservation::STATUS_APPROVED, Reservation::STATUS_PENDING]])
+    ->all();
+
+$bookingsJs = [];
+foreach ($reservations as $i => $reservation) {
+    $bookingsJs[] = [
+        'id' => 'srv_' . $reservation->id,
+        'labId' => (string)$reservation->room_id,
+        'date' => $reservation->date,
+        'startTime' => substr($reservation->start_time, 0, 5),
+        'endTime' => substr($reservation->end_time, 0, 5),
+        'courseName' => $reservation->reason_of_use ?: 'Reservasi #' . $reservation->id,
+        'color' => $reservation->status === Reservation::STATUS_PENDING
+            ? '#9CA3AF'
+            : $colors[$i % count($colors)],
+        'ownerId' => $reservation->user_id,
+    ];
+}
 ?>
 
 <style>
@@ -145,6 +174,17 @@ use yii\helpers\Url;
         </div>
         <?php endif ?>
 
+        <!-- Schedule Grid -->
+        <div class="detail-card">
+            <h3><i class="fas fa-calendar-alt me-2" style="color:#FF6B00"></i>Jadwal Ruangan</h3>
+            <p style="color:#575E70; font-size:13px; margin-top:-8px; margin-bottom:16px;">
+                Lihat ketersediaan ruangan minggu ini. 
+                <span style="display:inline-block; width:10px; height:10px; background:#9CA3AF; border-radius:2px; vertical-align:middle;"></span> Pending
+                <span style="display:inline-block; width:10px; height:10px; background:#FF6B00; border-radius:2px; vertical-align:middle; margin-left:8px;"></span> Dikonfirmasi
+            </p>
+            <div id="schedule-grid-container"></div>
+        </div>
+
         <!-- Info grid -->
         <div class="detail-card">
             <h3><i class="fas fa-clipboard-list me-2" style="color:#FF6B00"></i>Informasi Ruangan</h3>
@@ -175,11 +215,16 @@ use yii\helpers\Url;
                 <a href="<?= Url::to(['peminjaman', 'id' => $model->id]) ?>" class="btn-cta-primary">
                     <i class="fas fa-plus me-2"></i>Ajukan Peminjaman
                 </a>
-                <a href="<?= Url::to(['jadwal', 'room_id' => $model->id]) ?>" class="btn-cta-outline">
-                    <i class="fas fa-calendar me-2"></i>Lihat Jadwal
-                </a>
             </div>
         </div>
 
     </div>
 </section>
+
+<script>
+// Read-only schedule grid on room detail page — no room selector needed
+window.__scheduleGridOptions = { readOnly: true, deferSave: false, hideLabSelect: true };
+window.__scheduleGridRooms = [<?= Json::encode(['id' => $model->id, 'name' => $model->name]) ?>];
+window.__scheduleGridCurrentRoom = '<?= $model->id ?>';
+window.__scheduleGridBookings = <?= Json::encode($bookingsJs) ?>;
+</script>
